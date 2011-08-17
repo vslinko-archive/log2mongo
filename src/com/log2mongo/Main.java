@@ -4,9 +4,9 @@ import com.mongodb.BasicDBObject;
 import com.mongodb.DBCollection;
 import com.mongodb.Mongo;
 
-import java.io.BufferedReader;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
+import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.net.UnknownHostException;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -24,7 +24,8 @@ public class Main {
 
         try {
             // Source
-            BufferedReader logReader = new BufferedReader(new FileReader(filepath));
+            RandomAccessFile logReader = new RandomAccessFile(filepath, "r");
+            logReader.seek(logReader.length());
 
             // Destination
             DBCollection collection = new Mongo().getDB("logging").getCollection("logs");
@@ -48,6 +49,9 @@ public class Main {
             System.exit(2);
 
         } catch (UnknownHostException e) {
+            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, e);
+
+        } catch (IOException e) {
             Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, e);
         }
     }

@@ -1,16 +1,16 @@
 package com.log2mongo;
 
-import java.io.BufferedReader;
+import java.io.DataInput;
 import java.io.IOException;
 import java.util.concurrent.BlockingQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class LogReaderThread extends Thread {
-    private final BufferedReader logReader;
+    private final DataInput logReader;
     private final BlockingQueue<String> logQueue;
 
-    public LogReaderThread(BufferedReader logReader, BlockingQueue<String> logQueue) {
+    public LogReaderThread(DataInput logReader, BlockingQueue<String> logQueue) {
         this.logReader = logReader;
         this.logQueue = logQueue;
     }
