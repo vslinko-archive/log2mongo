@@ -1,16 +1,20 @@
 package com.log2mongo;
 
+import com.mongodb.BasicDBObject;
+import com.mongodb.DBCollection;
+import com.mongodb.DBObject;
+
 import java.io.DataInput;
 import java.io.IOException;
 import java.util.concurrent.BlockingQueue;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class LogReaderThread extends Thread {
+    private final DBCollection errorCollection;
     private final DataInput logReader;
     private final BlockingQueue<String> logQueue;
 
-    public LogReaderThread(DataInput logReader, BlockingQueue<String> logQueue) {
+    public LogReaderThread(DBCollection errorCollection, DataInput logReader, BlockingQueue<String> logQueue) {
+        this.errorCollection = errorCollection;
         this.logReader = logReader;
         this.logQueue = logQueue;
     }
@@ -27,7 +31,10 @@ public class LogReaderThread extends Thread {
                 logQueue.add(line);
 
             } catch (IOException e) {
-                Logger.getLogger(LogReaderThread.class.getName()).log(Level.SEVERE, null, e);
+                DBObject error = new BasicDBObject();
+                error.put("class", e.getClass().getName());
+                error.put("message", e.getMessage());
+                errorCollection.insert(error);
 
             } catch (InterruptedException e) {
                 break;

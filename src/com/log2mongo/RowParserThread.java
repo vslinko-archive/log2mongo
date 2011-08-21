@@ -1,12 +1,12 @@
 package com.log2mongo;
 
 import com.mongodb.BasicDBObject;
+import com.mongodb.DBCollection;
+import com.mongodb.DBObject;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.concurrent.BlockingQueue;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -14,10 +14,12 @@ public class RowParserThread extends Thread {
     private static final Pattern pattern = Pattern.compile("^([^ ]+) - \\[([^\\]]+)\\] \"([^\"]+)\" \"([^ ]+)[^\"]*\" (\\d+) \\((\\d+)\\) \"([^\"]+)\" \"([^ ]+) ([^\"]+)\" \\[([.0-9]+)\\]$");
     private static final SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MMM/yyyy:HH:mm:ss ZZZZZ");
 
+    private final DBCollection errorCollection;
     private final BlockingQueue<String> logQueue;
     private final BlockingQueue<BasicDBObject> docQueue;
 
-    public RowParserThread(BlockingQueue<String> logQueue, BlockingQueue<BasicDBObject> docQueue) {
+    public RowParserThread(DBCollection errorCollection, BlockingQueue<String> logQueue, BlockingQueue<BasicDBObject> docQueue) {
+        this.errorCollection = errorCollection;
         this.logQueue = logQueue;
         this.docQueue = docQueue;
     }
@@ -38,7 +40,10 @@ public class RowParserThread extends Thread {
                 break;
 
             } catch (InvalidLogFormatException e) {
-                Logger.getLogger(RowParserThread.class.getName()).log(Level.SEVERE, null, e);
+                DBObject error = new BasicDBObject();
+                error.put("class", e.getClass().getName());
+                error.put("message", e.getMessage());
+                errorCollection.insert(error);
             }
         }
     }
