@@ -18,10 +18,6 @@ public class Main {
         String logFilePath = config.getString("logFilePath");
 
         try {
-            // Source
-            RandomAccessFile logReader = new RandomAccessFile(logFilePath, "r");
-            logReader.seek(logReader.length());
-
             // Destination
             Mongo mongo = new Mongo(config.getString("host"), config.getInt("port"));
             DB db = mongo.getDB(config.getString("database"));
@@ -33,7 +29,7 @@ public class Main {
             BlockingQueue<BasicDBObject> docQueue = new LinkedBlockingQueue<BasicDBObject>();
 
             // Threads
-            Thread readerThread = new LogReaderThread(errorCollection, logReader, logQueue);
+            Thread readerThread = new LogReaderThread(errorCollection, logFilePath, logQueue);
             Thread parserThread = new RowParserThread(errorCollection, logQueue, docQueue);
             Thread writerThread = new DocWriterThread(docQueue, collection);
 
